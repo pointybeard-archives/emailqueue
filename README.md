@@ -34,4 +34,4 @@ We encourage you to contribute to this project. Please check out the [Contributi
 
 ## License
 
-"Saxon/C XSLT Processing Extension for Symphony CMS" is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+"Email Queue Extension for Symphony CMS" is released under the [MIT License](http://www.opensource.org/licenses/MIT).
