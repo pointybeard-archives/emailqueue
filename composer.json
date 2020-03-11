@@ -1,0 +1,34 @@
+{
+    "name": "pointybeard/symphony-emailqueue",
+    "description": "Extension for Symphony CMS that adds an email queue system.",
+    "homepage": "https://github.com/pointybeard/emailqueue",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alannah Kearney",
+            "email": "hi@alannahkearney.com",
+            "homepage": "http://alannahkearney.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.3",
+        "pointybeard/helpers": "~1.2.0",
+        "pointybeard/symphony-classmapper": "~2.0.0",
+        "pointybeard/symphony-section-builder": "~0.2.0",
+        "wildbit/postmark-php": "~2.0"
+    },
+    "support": {
+      "issues": "https://github.com/pointybeard/emailqueue/issues",
+      "wiki": "https://github.com/pointybeard/emailqueue/wiki"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "pointybeard\\Symphony\\Extensions\\": "src/"
+        },
+        "files": [
+            "extension.driver.php"
+        ]
+    }
+}
