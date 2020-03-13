@@ -7,6 +7,8 @@ use pointybeard\Symphony\Classmapper;
 final class Log extends Classmapper\AbstractModel implements Classmapper\Interfaces\FilterableModelInterface, Classmapper\Interfaces\SortableModelInterface
 {
     use Classmapper\Traits\HasModelTrait;
+    use Classmapper\Traits\HasFilterableModelTrait;
+    use Classmapper\Traits\HasSortableModelTrait;
 
     const STATUS_FAILED = 'Failed';
     const STATUS_SENT = 'Sent';

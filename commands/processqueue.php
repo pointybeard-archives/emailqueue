@@ -6,13 +6,14 @@ namespace pointybeard\Symphony\Extensions\Console\Commands\EmailQueue;
 
 use pointybeard\Symphony\Extensions\EmailQueue\Models;
 use pointybeard\Symphony\Extensions\Console as Console;
-use pointybeard\Symphony\Extensions\Console\Commands\Console\Symphony;
+use pointybeard\Symphony\Extensions\Console\Commands\Console\Symphony as SymphonyConsole;
 use pointybeard\Helpers\Cli;
 use pointybeard\Helpers\Cli\Input;
 use pointybeard\Helpers\Cli\Input\AbstractInputType as Type;
 use pointybeard\Helpers\Foundation\BroadcastAndListen;
 use pointybeard\Helpers\Cli\Colour;
 use pointybeard\Helpers\Cli\Message;
+use pointybeard\Symphony\Extensions\Settings\Models\Setting;
 
 class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces\AuthenticatedCommandInterface, BroadcastAndListen\Interfaces\AcceptsListenersInterface
 {
@@ -99,7 +100,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
 
         if($queue->count() <= 0) {
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                SymphonyConsole::BROADCAST_MESSAGE,
                 E_WARNING,
                 (new Message\Message)
                     ->message("No emails require sending. Nothing to do.")
@@ -110,7 +111,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
 
         if (true == $dryRun) {
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                SymphonyConsole::BROADCAST_MESSAGE,
                 E_WARNING,
                 (new Message\Message)
                     ->message("DRY RUN MODE ACTIVE - NO EMAILS WILL BE SENT.")
@@ -118,7 +119,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
             );
         } elseif (false == $skipCountdown) {
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                SymphonyConsole::BROADCAST_MESSAGE,
                 E_WARNING,
                 (new Message\Message)
                     ->message("RUNNING IN LIVE MODE! EMAILS WILL BE SENT. STARTING IN 5 SECONDS")
@@ -130,7 +131,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
             for ($ii = 5; $ii >= 1; --$ii) {
                 sleep(1);
                 $this->broadcast(
-                    Symphony::BROADCAST_MESSAGE,
+                    SymphonyConsole::BROADCAST_MESSAGE,
                     E_NOTICE,
                     (new Message\Message)
                         ->message(".")
@@ -142,7 +143,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
 
         if (null != $limit && $queue->count() > $limit) {
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                SymphonyConsole::BROADCAST_MESSAGE,
                 E_NOTICE,
                 (new Message\Message)
                     ->message("Limit has been set to {$limit}. Stopping once {$limit} emails have been processed.")
@@ -158,7 +159,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
 
             if (null != $limit && $total > $limit) {
                 $this->broadcast(
-                    Symphony::BROADCAST_MESSAGE,
+                    SymphonyConsole::BROADCAST_MESSAGE,
                     E_NOTICE,
                     (new Message\Message)
                         ->message("Send limit of {$limit} has been reached. Finishing.")
@@ -169,7 +170,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
 
             $email = $q->email();
 
-            if (!($email instanceof Lib\Models\Email) || $email->hasBeenSent()) {
+            if (!($email instanceof Models\Email) || $email->hasBeenSent()) {
                 // This queue entry has no Email associated or the email has
                 // already been sent. Delete it and move on
                 $q->delete();
@@ -179,14 +180,14 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
 
             try {
                 if (false == $dryRun) {
-                    $email->send();
+                    $email->send(Setting::fetchByGroup("postmark"));
                     $q->delete();
                 }
                 ++$count['sent'];
 
-            } catch (Lib\Exceptions\EmailAlreadySentException $ex) {
+            } catch (Exceptions\EmailAlreadySentException $ex) {
                 $this->broadcast(
-                    Symphony::BROADCAST_MESSAGE,
+                    SymphonyConsole::BROADCAST_MESSAGE,
                     E_NOTICE,
                     (new Message\Message)
                         ->message("Email with ID {$email->id} has already been sent. Skipping")
@@ -203,7 +204,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
                 $wasRequeued = false;
 
                 if ($email instanceof Models\Email) {
-                    $q = Models\Queue::loadFromEmailId($email->id);
+                    $q = Models\Queue::loadFromEmailId((int) $email->id);
 
                     if ($q instanceof Models\Queue) {
                         $wasRequeued = $q->requeue();
@@ -211,7 +212,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
                 }
 
                 $this->broadcast(
-                    Symphony::BROADCAST_MESSAGE,
+                    SymphonyConsole::BROADCAST_MESSAGE,
                     E_ERROR,
                     (new Message\Message)
                         ->message(sprintf(
@@ -237,7 +238,7 @@ class ProcessQueue extends Console\AbstractCommand implements Console\Interfaces
         );
 
         $this->broadcast(
-            Symphony::BROADCAST_MESSAGE,
+            SymphonyConsole::BROADCAST_MESSAGE,
             E_NOTICE,
             (new Message\Message)
                 ->message($message)

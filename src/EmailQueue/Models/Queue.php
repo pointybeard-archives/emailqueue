@@ -57,33 +57,33 @@ final class Queue extends Classmapper\AbstractModel implements Classmapper\Inter
         ];
     }
 
-    public function email(): ?self
+    public function email(): ?Email
     {
         return Email::loadFromId($this->emailId);
     }
 
     public static function loadFromEmailId(int $emailId): ?self
     {
-        return self::fetch([
-            ['emailId', $emailId, \PDO::PARAM_INT],
-        ])->current();
+        return self::fetch(
+            Classmapper\FilterFactory::build('Basic', 'emailId', $emailId, \PDO::PARAM_INT)
+        )->current();
     }
 
-    public static function fetchByStatus($status): \SymphonyPDO\Lib\ResultIterator
+    public static function fetchByStatus($status): \Iterator
     {
-        return self::fetch([
-            ['status', $status],
-        ]);
+        return self::fetch(
+            Classmapper\FilterFactory::build('Basic', 'status', $status)
+        );
     }
 
-    public static function fetchByPriority(string $priority): \SymphonyPDO\Lib\ResultIterator
+    public static function fetchByPriority(string $priority): \Iterator
     {
-        return self::fetch([
-            ['priority', $priority],
-        ]);
+        return self::fetch(
+            Classmapper\FilterFactory::build('Basic', 'priority', $priority)
+        );
     }
 
-    public static function fetchEmailsReadyToSend(): \SymphonyPDO\Lib\ResultIterator
+    public static function fetchEmailsReadyToSend(): \Iterator
     {
         return (new self)
             ->appendFilter(Classmapper\FilterFactory::build('Basic', 'status', self::STATUS_QUEUED))

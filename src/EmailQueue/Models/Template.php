@@ -4,6 +4,7 @@ namespace pointybeard\Symphony\Extensions\EmailQueue\Models;
 
 use pointybeard\Symphony\Classmapper;
 use pointybeard\Symphony\Extensions\EmailQueue;
+use pointybeard\Symphony\Extensions\Settings;
 use pointybeard\Symphony\Extensions\EmailQueue\Traits;
 
 final class Template extends Classmapper\AbstractModel implements Classmapper\Interfaces\FilterableModelInterface, Classmapper\Interfaces\SortableModelInterface
@@ -31,31 +32,27 @@ final class Template extends Classmapper\AbstractModel implements Classmapper\In
                 'flags' => self::FLAG_ARRAY | self::FLAG_INT | self::FLAG_NULL,
             ],
 
+            'provider' => [
+                'databaseFieldName' => 'relation_id',
+                'classMemberName' => 'providerId',
+                'flags' => self::FLAG_INT | self::FLAG_REQUIRED,
+            ],
+
             'name' => [
                 'flags' => self::FLAG_STR | self::FLAG_SORTBY | self::FLAG_SORTASC | self::FLAG_REQUIRED,
             ],
         ];
     }
 
-    public static function loadFromName($name): self
+    public static function loadFromName(string $name): self
     {
-        $template = self::fetch([
-            ['name', $name],
-        ])->current();
-
-        if (!($template instanceof self)) {
-            throw new Lib\Exceptions\EmailTemplateNotFoundException($name);
-        }
-
-        return $template;
+        return self::fetch(
+            Classmapper\FilterFactory::build('Basic', 'name', $name)
+        )->current();
     }
 
     public function send(string $recipientEmailAddress, Settings\SettingsResultIterator $credentials, array $data = [], array $attachments = [], string $replyTo = null, string $cc = null): void
     {
-        // if (null === $credentials) {
-        //     $credentials = \Extension_EmailQueue::getPostmarkCredentials();
-        // }
-
         // @todo: error handling for any field that has a null value
         // every field must have a value or have the "allow null" flag set
         $fields = $this->fields();
@@ -74,7 +71,7 @@ final class Template extends Classmapper\AbstractModel implements Classmapper\In
         }
 
         // Send the email via the provider for this template
-        $this->provider()->send(
+        $this->provider()->instanciate()->send(
             $credentials,
             $this,
             $recipientEmailAddress,
@@ -83,7 +80,11 @@ final class Template extends Classmapper\AbstractModel implements Classmapper\In
             $replyTo,
             $cc
         );
+    }
 
+    public function provider(): ?Provider
+    {
+        return Provider::loadFromId($this->providerId);
     }
 
     public function fields(): ?\SymphonyPDO\Lib\ResultIterator

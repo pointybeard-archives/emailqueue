@@ -3,10 +3,11 @@
 namespace pointybeard\Symphony\Extensions\EmailQueue\Exceptions;
 
 use pointybeard\Symphony\Extensions\EmailQueue;
+use pointybeard\Symphony\Extensions\Settings;
 
 final class SendingEmailFailedException extends EmailQueueExceptionException
 {
-    public function __construct(string $message, EmailQueue\Models\Email $email, array $fields, string $recipient, ?EmailQueue\AbstractCredentials $credentials = null, $code = 0, \Exception $previous = null)
+    public function __construct(string $message, EmailQueue\Models\Email $email, ?array $fields, string $recipient, ?Settings\SettingsResultIterator $credentials = null, $code = 0, \Exception $previous = null)
     {
         $logEntry = (new EmailQueue\Models\Log)
             ->dateCreatedAt('now')

@@ -66,6 +66,7 @@ final class Email extends Classmapper\AbstractModel implements Classmapper\Inter
 
     public function send(Settings\SettingsResultIterator $credentials, bool $forceSend = false, array $attachments = [], string $replyTo = null, string $cc = null): void
     {
+
         if (false == $forceSend && true == $this->hasBeenSent()) {
             throw new Exceptions\EmailAlreadySentException($this->uuid);
         }
@@ -87,8 +88,8 @@ final class Email extends Classmapper\AbstractModel implements Classmapper\Inter
 
             $result = $template->send(
                 $this->recipient,
-                $data,
                 $credentials,
+                $data,
                 $attachments,
                 $replyTo,
                 $cc

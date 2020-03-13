@@ -6,8 +6,10 @@ namespace pointybeard\Symphony\Extensions\EmailQueue\Providers;
 
 use Postmark\PostmarkClient;
 use pointybeard\Symphony\Extensions\EmailQueue;
+use pointybeard\Symphony\Extensions\Settings;
 use pointybeard\Helpers\Cli\Colour;
 use pointybeard\Helpers\Cli\Message;
+use pointybeard\Symphony\Extensions\Console\Commands\Console;
 
 final class Postmark extends EmailQueue\AbstractProvider {
 
@@ -17,36 +19,36 @@ final class Postmark extends EmailQueue\AbstractProvider {
         try{
 
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message())
+                (new Message\Message)
                     ->message("Creating Postmark client with apiKey provided...")
                     ->flags(null)
             );
 
-            $client = new PostmarkClient($credentials->find("apiKey"));
+            $client = new PostmarkClient($credentials->find("apikey"));
 
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message())
+                (new Message\Message)
                     ->message("Done")
                     ->foreground(Colour\Colour::FG_GREEN)
-                    ->flags(Message::FLAG_APPEND_NEWLINE)
+                    ->flags(Message\Message::FLAG_APPEND_NEWLINE)
             );
 
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message())
+                (new Message\Message)
                     ->message("Attempting to send email to recipient {$recipient} ...")
-                    ->flags(Message::FLAG_NONE)
+                    ->flags(Message\Message::FLAG_NONE)
             );
 
             $client->sendEmailWithTemplate(
                 $credentials->find("from"),
                 $recipient,
-                $template->templateId,
+                $template->externalTemplateUid(),
                 $data,
                 true,
                 null,
@@ -59,22 +61,22 @@ final class Postmark extends EmailQueue\AbstractProvider {
             );
 
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message())
+                (new Message\Message)
                     ->message("Done")
                     ->foreground(Colour\Colour::FG_GREEN)
-                    ->flags(Message::FLAG_APPEND_NEWLINE)
+                    ->flags(Message\Message::FLAG_APPEND_NEWLINE)
             );
 
         } catch(\Exception $ex) {
             $this->broadcast(
-                Symphony::BROADCAST_MESSAGE,
+                Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message())
+                (new Message\Message)
                     ->message("Failed to send email! Returned - " . $ex->getMessage())
                     ->foreground(Colour\Colour::FG_RED)
-                    ->flags(Message::FLAG_APPEND_NEWLINE)
+                    ->flags(Message\Message::FLAG_APPEND_NEWLINE)
             );
 
             // Rethrow the exception so it can bubble up

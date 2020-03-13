@@ -24,22 +24,35 @@ final class Provider extends Classmapper\AbstractModel implements Classmapper\In
             'name' => [
                 'flags' => self::FLAG_STR | self::FLAG_SORTBY | self::FLAG_SORTASC | self::FLAG_REQUIRED,
             ],
-            'namespace' => [
+            'classname' => [
                 'flags' => self::FLAG_STR | self::FLAG_REQUIRED,
             ],
         ];
     }
 
-    public static function register(string $name, string $namespace): self
+    public static function register(string $name, string $classname): self
     {
-        if(false == class_exists($namespace)) {
-            throw new EmailQueue\Exceptions\ProviderClassNamespaceInvalidException($namespace);
+        if(false == self::isProviderClassnameValid($classname)) {
+            throw new EmailQueue\Exceptions\ProviderClassnameInvalidException($classname);
         }
 
         return (new self)
             ->name($name)
-            ->namespace($namespace)
+            ->namespace($classname)
             ->save()
         ;
+    }
+
+    protected static function isProviderClassnameValid($classname): bool {
+        return true == class_exists($classname);
+    }
+
+    public function instanciate(): EmailQueue\AbstractProvider
+    {
+        if(false == self::isProviderClassnameValid($this->classname())) {
+            throw new EmailQueue\Exceptions\ProviderClassnameInvalidException($this->classname());
+        }
+
+        return new $this->classname();
     }
 }
