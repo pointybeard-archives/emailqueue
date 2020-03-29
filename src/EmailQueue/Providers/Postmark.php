@@ -102,7 +102,7 @@ final class Postmark extends EmailQueue\AbstractProvider
                 ->name("from")
                 ->group(["Postmark"])
                 ->dateCreatedAt("now")
-                ->value(sprintf('"%s" <%s>', Symphony::Author()->getFullName(), Symphony::Author()->get("email")))
+                ->value(sprintf('"%s" <%s>', \Symphony::Author()->getFullName(), \Symphony::Author()->get("email")))
                 ->save()
             ;
         }
