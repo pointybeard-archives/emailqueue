@@ -11,28 +11,26 @@ use pointybeard\Helpers\Cli\Colour;
 use pointybeard\Helpers\Cli\Message;
 use pointybeard\Symphony\Extensions\Console\Commands\Console;
 
-final class Postmark extends EmailQueue\AbstractProvider {
-
+final class Postmark extends EmailQueue\AbstractProvider
+{
     public function send(Settings\SettingsResultIterator $credentials, EmailQueue\Models\Template $template, string $recipient, array $data = [], $attachments = [], string $replyTo = null, string $cc = null): void
     {
-
-        try{
-
+        try {
             $this->broadcast(
                 Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message\Message)
-                    ->message("Creating Postmark client with apiKey provided...")
+                (new Message\Message())
+                    ->message('Creating Postmark client with apiKey provided...')
                     ->flags(null)
             );
 
-            $client = new PostmarkClient($credentials->find("apikey"));
+            $client = new PostmarkClient($credentials->find('apikey'));
 
             $this->broadcast(
                 Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message\Message)
-                    ->message("Done")
+                (new Message\Message())
+                    ->message('Done')
                     ->foreground(Colour\Colour::FG_GREEN)
                     ->flags(Message\Message::FLAG_APPEND_NEWLINE)
             );
@@ -40,13 +38,13 @@ final class Postmark extends EmailQueue\AbstractProvider {
             $this->broadcast(
                 Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message\Message)
+                (new Message\Message())
                     ->message("Attempting to send email to recipient {$recipient} ...")
                     ->flags(Message\Message::FLAG_NONE)
             );
 
             $client->sendEmailWithTemplate(
-                $credentials->find("from"),
+                $credentials->find('from'),
                 $recipient,
                 $template->externalTemplateUid(),
                 $data,
@@ -63,18 +61,17 @@ final class Postmark extends EmailQueue\AbstractProvider {
             $this->broadcast(
                 Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message\Message)
-                    ->message("Done")
+                (new Message\Message())
+                    ->message('Done')
                     ->foreground(Colour\Colour::FG_GREEN)
                     ->flags(Message\Message::FLAG_APPEND_NEWLINE)
             );
-
-        } catch(\Exception $ex) {
+        } catch (\Exception $ex) {
             $this->broadcast(
                 Console\Symphony::BROADCAST_MESSAGE,
                 E_NOTICE,
-                (new Message\Message)
-                    ->message("Failed to send email! Returned - " . $ex->getMessage())
+                (new Message\Message())
+                    ->message('Failed to send email! Returned - '.$ex->getMessage())
                     ->foreground(Colour\Colour::FG_RED)
                     ->flags(Message\Message::FLAG_APPEND_NEWLINE)
             );
@@ -82,7 +79,32 @@ final class Postmark extends EmailQueue\AbstractProvider {
             // Rethrow the exception so it can bubble up
             throw $ex;
         }
-
     }
 
+    public function register(): void
+    {
+        parent::register();
+
+        // Create the 'apikey' setting
+        if(false == (Settings\Models\Setting::loadFromNameFilterByGroup("apikey", "Postmark") instanceof Settings\Models\Setting)) {
+            (new Settings\Models\Setting)
+                ->name("apikey")
+                ->group(["Credentials", "Postmark"])
+                ->dateCreatedAt("now")
+                ->value("*** ENTER POSTMARK API KEY HERE ***")
+                ->save()
+            ;
+        }
+
+        // Create the 'from' address setting
+        if(false == (Settings\Models\Setting::loadFromNameFilterByGroup("from", "Postmark") instanceof Settings\Models\Setting)) {
+            (new Settings\Models\Setting)
+                ->name("from")
+                ->group(["Postmark"])
+                ->dateCreatedAt("now")
+                ->value(sprintf('"%s" <%s>', Symphony::Author()->getFullName(), Symphony::Author()->get("email")))
+                ->save()
+            ;
+        }
+    }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace pointybeard\Symphony\Extensions\EmailQueue\Models;
 
 use pointybeard\Symphony\Classmapper;

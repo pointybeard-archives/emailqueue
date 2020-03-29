@@ -7,5 +7,6 @@ namespace pointybeard\Symphony\Extensions\EmailQueue\Interfaces;
 interface CredentialsInterface
 {
     public function __toJson();
+
     public function __toArray();
 }

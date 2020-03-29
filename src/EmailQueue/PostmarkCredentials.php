@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace pointybeard\Symphony\Extensions\EmailQueue;
 
 final class PostmarkCredentials extends AbstractCredentials

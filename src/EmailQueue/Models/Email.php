@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace pointybeard\Symphony\Extensions\EmailQueue\Models;
 
-use pointybeard\Symphony\Extensions\EmailQueue;
 use pointybeard\Symphony\Extensions\EmailQueue\Exceptions;
 use pointybeard\Symphony\Classmapper;
 use pointybeard\Symphony\Extensions\Settings;
@@ -30,7 +31,7 @@ final class Email extends Classmapper\AbstractModel implements Classmapper\Inter
 
             'date-created' => [
                 'classMemberName' => 'dateCreatedAt',
-                'flags' => self::FLAG_SORTBY | self::FLAG_SORTASC | self::FLAG_REQUIRED
+                'flags' => self::FLAG_SORTBY | self::FLAG_SORTASC | self::FLAG_REQUIRED,
             ],
 
             'date-sent' => [
@@ -66,13 +67,11 @@ final class Email extends Classmapper\AbstractModel implements Classmapper\Inter
 
     public function send(Settings\SettingsResultIterator $credentials, bool $forceSend = false, array $attachments = [], string $replyTo = null, string $cc = null): void
     {
-
         if (false == $forceSend && true == $this->hasBeenSent()) {
             throw new Exceptions\EmailAlreadySentException($this->uuid);
         }
 
         try {
-
             $template = $this->template();
 
             // Simple sanitity check. Make sure template exists
@@ -96,7 +95,7 @@ final class Email extends Classmapper\AbstractModel implements Classmapper\Inter
             );
 
             // Sending was successful. Log it.
-            (new Log)
+            (new Log())
                 ->emailId($this->id)
                 ->dateCreatedAt('now')
                 ->status(Log::STATUS_SENT)
@@ -107,7 +106,7 @@ final class Email extends Classmapper\AbstractModel implements Classmapper\Inter
                     'template' => $template->__toArray(),
                     'replyTo' => $replyTo,
                     'cc' => $cc,
-                    'hasAttachments' => (false == empty($attachments))
+                    'hasAttachments' => (false == empty($attachments)),
                 ], JSON_PRETTY_PRINT))
                 ->save()
             ;

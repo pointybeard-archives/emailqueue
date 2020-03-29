@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace pointybeard\Symphony\Extensions\EmailQueue\Models;
 
 use pointybeard\Symphony\Classmapper;
@@ -30,26 +32,42 @@ final class Provider extends Classmapper\AbstractModel implements Classmapper\In
         ];
     }
 
+    public static function loadFromClassname(string $classname): ?self
+    {
+        $result = self::fetch(
+            Classmapper\FilterFactory::build('Basic', 'classname', $classname)
+        )->current();
+
+        // current() returns true/false but we want to be returning NULL so we
+        // cannot use the return value directly.
+        return $result instanceof self ? $result : null;
+    }
+
     public static function register(string $name, string $classname): self
     {
-        if(false == self::isProviderClassnameValid($classname)) {
+        if (false == self::isProviderClassnameValid($classname)) {
             throw new EmailQueue\Exceptions\ProviderClassnameInvalidException($classname);
         }
 
-        return (new self)
+        if(self::loadFromClassname($classname) instanceof self) {
+            throw new EmailQueue\Exceptions\ProviderClassnameAlreadyRegistered($classname);
+        }
+
+        return (new self())
             ->name($name)
-            ->namespace($classname)
+            ->classname($classname)
             ->save()
         ;
     }
 
-    protected static function isProviderClassnameValid($classname): bool {
+    protected static function isProviderClassnameValid($classname): bool
+    {
         return true == class_exists($classname);
     }
 
     public function instanciate(): EmailQueue\AbstractProvider
     {
-        if(false == self::isProviderClassnameValid($this->classname())) {
+        if (false == self::isProviderClassnameValid($this->classname())) {
             throw new EmailQueue\Exceptions\ProviderClassnameInvalidException($this->classname());
         }
 

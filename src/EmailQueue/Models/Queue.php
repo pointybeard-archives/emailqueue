@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace pointybeard\Symphony\Extensions\EmailQueue\Models;
 
 use pointybeard\Symphony\Extensions\EmailQueue\Traits;
@@ -85,7 +87,7 @@ final class Queue extends Classmapper\AbstractModel implements Classmapper\Inter
 
     public static function fetchEmailsReadyToSend(): \Iterator
     {
-        return (new self)
+        return (new self())
             ->appendFilter(Classmapper\FilterFactory::build('Basic', 'status', self::STATUS_QUEUED))
             ->appendFilter(Classmapper\FilterFactory::build(
                 'Basic',
@@ -120,7 +122,7 @@ final class Queue extends Classmapper\AbstractModel implements Classmapper\Inter
             ]
         );
 
-        $email = (new Email)
+        $email = (new Email())
             ->recipient($recipient)
             ->templateId($template->id)
             ->dateCreatedAt('now')
@@ -128,7 +130,7 @@ final class Queue extends Classmapper\AbstractModel implements Classmapper\Inter
             ->save()
         ;
 
-        (new self)
+        (new self())
             ->emailId($email->id)
             ->nextSendAttemptDate($sendDate)
             ->sendAttemptsRemaining($sendAttempts)
